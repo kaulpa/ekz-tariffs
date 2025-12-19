@@ -1,0 +1,5 @@
+{
+    "name": "EKZ Tariffs",
+    "country": ["CH"],
+    "homeassistant": "2025.12.0"
+}
