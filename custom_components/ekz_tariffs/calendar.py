@@ -4,13 +4,14 @@ import contextlib
 import datetime as dt
 from dataclasses import dataclass
 
-from custom_components.ekz_tariffs.api import TariffSlot
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.util import dt as dt_util
+
+from custom_components.ekz_tariffs.api import TariffSlot
 
 from .const import DOMAIN, EVENT_TARIFF_START, EVENT_TYPE
 from .coordinator import EkzTariffsCoordinator
@@ -44,7 +45,7 @@ def fuse_slots(slots: list[TariffSlot]) -> list[FusedEvent]:
 
 
 class EkzTariffsCalendar(CalendarEntity):
-    _attr_name = "EKZ Tariffs"
+    _attr_name: str
     _attr_unique_id: str
 
     def __init__(self, hass: HomeAssistant, entry_id: str, tariff_name: str, coordinator: EkzTariffsCoordinator) -> None:
@@ -53,6 +54,7 @@ class EkzTariffsCalendar(CalendarEntity):
         self._tariff_name = tariff_name
         self._coordinator = coordinator
         self._attr_unique_id = f"{entry_id}_calendar"
+        self._attr_name = f"EKZ Tariffs: {tariff_name}"
 
         self._events: list[CalendarEvent] = []
         self._fused: list[FusedEvent] = []

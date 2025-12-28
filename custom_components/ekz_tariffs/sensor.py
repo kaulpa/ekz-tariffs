@@ -4,11 +4,8 @@ import contextlib
 import datetime as dt
 from typing import Any
 
-from homeassistant.components.sensor import (
-    SensorDeviceClass,
-    SensorEntity,
-    SensorStateClass,
-)
+from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
+                                             SensorStateClass)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -42,9 +39,12 @@ def _find_next_boundary(slots: list[TariffSlot], now: dt.datetime) -> dt.datetim
     return None
 
 
+def santize_tariff_name(tariff_name: str) -> str:
+    return tariff_name.replace(" ", "_").lower()
+
+
 class EkzCurrentPriceSensor(SensorEntity):
     _attr_has_entity_name = True
-    _attr_name = "Current price"
     _attr_native_unit_of_measurement = "CHF/kWh"
     _attr_state_class = SensorStateClass.MEASUREMENT
 
@@ -54,6 +54,7 @@ class EkzCurrentPriceSensor(SensorEntity):
         self._tariff_name = tariff_name
         self._coordinator = coordinator
         self._attr_unique_id = f"{entry_id}_current_price"
+        self._attr_name = f"Current price: {tariff_name}"
         self._unsub_boundary: Any | None = None
 
     async def async_added_to_hass(self) -> None:
@@ -122,7 +123,6 @@ class EkzCurrentPriceSensor(SensorEntity):
 
 class EkzNextChangeSensor(SensorEntity):
     _attr_has_entity_name = True
-    _attr_name = "Next change"
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     def __init__(self, hass: HomeAssistant, entry_id: str, tariff_name: str, coordinator) -> None:
@@ -130,6 +130,7 @@ class EkzNextChangeSensor(SensorEntity):
         self._entry_id = entry_id
         self._tariff_name = tariff_name
         self._coordinator = coordinator
+        self._attr_name = f"Next change: {tariff_name}"
         self._attr_unique_id = f"{entry_id}_next_change"
 
     async def async_added_to_hass(self) -> None:
