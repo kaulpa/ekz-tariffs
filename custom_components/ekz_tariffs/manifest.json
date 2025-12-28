@@ -7,6 +7,5 @@
   "codeowners": ["@schmidtfx"],
   "requirements": [],
   "integration_type": "service",
-  "iot_class": "cloud_polling",
-  "platforms": ["calendar", "sensor"]
+  "iot_class": "cloud_polling"
 }
