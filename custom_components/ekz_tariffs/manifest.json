@@ -6,6 +6,7 @@
   "documentation": "https://github.com/schmidtfx/ekz-tariffs",
   "integration_type": "service",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/schmidtfx/ekz-tariffs/issues",
   "requirements": [],
   "version": "0.1.1"
 }
