@@ -1,7 +1,5 @@
 {
   "name": "EKZ Dynamic Tariffs",
-  "content_in_root": false,
-  "domains": ["ekz_tariffs"],
-  "homeassistant": "2024.12.0",
-  "render_readme": true
+  "country": ["CH"],
+  "homeassistant": "2024.12.0"
 }
