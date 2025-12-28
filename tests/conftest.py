@@ -4,9 +4,11 @@ import datetime as dt
 from unittest.mock import patch
 
 import pytest
-from custom_components.ekz_tariffs.const import CONF_TARIFF_NAME, DOMAIN
+from homeassistant.core import HomeAssistant
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.ekz_tariffs.const import CONF_TARIFF_NAME, DOMAIN
 
 
 @pytest.fixture
@@ -20,8 +22,8 @@ def mock_config_entry() -> MockConfigEntry:
 
 
 @pytest.fixture
-def hass_time_zone(hass):
-    hass.config.set_time_zone("Europe/Zurich")
+async def hass_time_zone(hass: HomeAssistant):
+    await hass.config.async_set_time_zone("Europe/Zurich")
     return hass
 
 
