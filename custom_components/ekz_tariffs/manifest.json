@@ -1,0 +1,12 @@
+{
+  "domain": "ekz_tariffs",
+  "name": "EKZ Dynamic Tariffs",
+  "config_flow": true,
+  "version": "0.1.0",
+  "documentation": "https://github.com/schmidtfx/ekz-tariffs",
+  "codeowners": ["@schmidtfx"],
+  "requirements": [],
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "platforms": ["calendar", "sensor"]
+}
