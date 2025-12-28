@@ -4,8 +4,11 @@ import contextlib
 import datetime as dt
 from typing import Any
 
-from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
-                                             SensorStateClass)
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -23,7 +26,9 @@ def _find_current_slot(slots: list[TariffSlot], now: dt.datetime) -> TariffSlot 
     return None
 
 
-def _find_next_boundary(slots: list[TariffSlot], now: dt.datetime) -> dt.datetime | None:
+def _find_next_boundary(
+    slots: list[TariffSlot], now: dt.datetime
+) -> dt.datetime | None:
     """
     Next moment when the price can change:
     - if currently in a slot: its end
@@ -48,7 +53,9 @@ class EkzCurrentPriceSensor(SensorEntity):
     _attr_native_unit_of_measurement = "CHF/kWh"
     _attr_state_class = SensorStateClass.MEASUREMENT
 
-    def __init__(self, hass: HomeAssistant, entry_id: str, tariff_name: str, coordinator) -> None:
+    def __init__(
+        self, hass: HomeAssistant, entry_id: str, tariff_name: str, coordinator
+    ) -> None:
         self.hass = hass
         self._entry_id = entry_id
         self._tariff_name = tariff_name
@@ -58,7 +65,9 @@ class EkzCurrentPriceSensor(SensorEntity):
         self._unsub_boundary: Any | None = None
 
     async def async_added_to_hass(self) -> None:
-        self.async_on_remove(self._coordinator.async_add_listener(self._handle_coordinator_update))
+        self.async_on_remove(
+            self._coordinator.async_add_listener(self._handle_coordinator_update)
+        )
         self._handle_coordinator_update()
 
     def _clear_boundary_timer(self) -> None:
@@ -81,7 +90,9 @@ class EkzCurrentPriceSensor(SensorEntity):
             self.async_write_ha_state()
             self._schedule_next_boundary_update()
 
-        self._unsub_boundary = async_track_point_in_time(self.hass, _on_boundary, next_boundary)
+        self._unsub_boundary = async_track_point_in_time(
+            self.hass, _on_boundary, next_boundary
+        )
 
     def _handle_coordinator_update(self) -> None:
         # Tariff schedule changed (daily refresh) -> reschedule boundary updates
@@ -113,10 +124,12 @@ class EkzCurrentPriceSensor(SensorEntity):
         }
 
         if cur:
-            attrs.update({
-                "slot_start": cur.start.isoformat(),
-                "slot_end": cur.end.isoformat(),
-            })
+            attrs.update(
+                {
+                    "slot_start": cur.start.isoformat(),
+                    "slot_end": cur.end.isoformat(),
+                }
+            )
 
         return attrs
 
@@ -125,7 +138,9 @@ class EkzNextChangeSensor(SensorEntity):
     _attr_has_entity_name = True
     _attr_device_class = SensorDeviceClass.TIMESTAMP
 
-    def __init__(self, hass: HomeAssistant, entry_id: str, tariff_name: str, coordinator) -> None:
+    def __init__(
+        self, hass: HomeAssistant, entry_id: str, tariff_name: str, coordinator
+    ) -> None:
         self.hass = hass
         self._entry_id = entry_id
         self._tariff_name = tariff_name
@@ -165,8 +180,12 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][entry.entry_id]
     async_add_entities(
         [
-            EkzCurrentPriceSensor(hass, entry.entry_id, data["tariff_name"], data["coordinator"]),
-            EkzNextChangeSensor(hass, entry.entry_id, data["tariff_name"], data["coordinator"])
+            EkzCurrentPriceSensor(
+                hass, entry.entry_id, data["tariff_name"], data["coordinator"]
+            ),
+            EkzNextChangeSensor(
+                hass, entry.entry_id, data["tariff_name"], data["coordinator"]
+            ),
         ],
         update_before_add=False,
     )

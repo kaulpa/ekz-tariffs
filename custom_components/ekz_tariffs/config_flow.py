@@ -7,6 +7,7 @@ from .const import CONF_TARIFF_NAME, DEFAULT_TARIFF_NAME, DOMAIN
 
 TARIFF_CHOICES = ["400D", "400F", "400ST", "400WP", "400L", "400LS", "16L", "16LS"]
 
+
 class EkzTariffsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
@@ -14,7 +15,9 @@ class EkzTariffsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             schema = vol.Schema(
                 {
-                vol.Required(CONF_TARIFF_NAME, default=DEFAULT_TARIFF_NAME): vol.In(TARIFF_CHOICES),
+                    vol.Required(CONF_TARIFF_NAME, default=DEFAULT_TARIFF_NAME): vol.In(
+                        TARIFF_CHOICES
+                    ),
                 }
             )
             return self.async_show_form(step_id="user", data_schema=schema)

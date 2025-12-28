@@ -18,6 +18,7 @@ async def test_current_price_and_next_change_sensors(
 
     # Build slots covering "now" and the next boundary.
     from tests.conftest import make_slots
+
     start = fixed_now.replace(minute=0, second=0)
     prices = [0.20, 0.20, 0.25, 0.25]  # 1 hour of data
     slots = make_slots(start, prices)

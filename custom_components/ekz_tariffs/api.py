@@ -58,11 +58,13 @@ class EkzTariffsApi:
             if price_val is None:
                 continue
 
-            slots.append(TariffSlot(
-                start=dt_util.as_local(start_ts),
-                end=dt_util.as_local(end_ts),
-                price_chf_per_kwh=float(price_val),
-            ))
+            slots.append(
+                TariffSlot(
+                    start=dt_util.as_local(start_ts),
+                    end=dt_util.as_local(end_ts),
+                    price_chf_per_kwh=float(price_val),
+                )
+            )
 
         slots.sort(key=lambda s: s.start)
         return slots

@@ -18,5 +18,3 @@ EVENT_TYPE = f"{DOMAIN}_event"
 EVENT_TARIFF_START = "tariff_start"
 
 SERVICE_REFRESH = "refresh"
-
-

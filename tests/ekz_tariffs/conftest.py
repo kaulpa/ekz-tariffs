@@ -41,7 +41,9 @@ def make_slots(start: dt.datetime, prices: list[float], minutes=15):
 @pytest.fixture
 def fixed_now():
     # A stable "now" inside today so sensors can evaluate current slot.
-    return dt_util.as_local(dt.datetime(2025, 12, 28, 12, 7, 0, tzinfo=dt_util.DEFAULT_TIME_ZONE))
+    return dt_util.as_local(
+        dt.datetime(2025, 12, 28, 12, 7, 0, tzinfo=dt_util.DEFAULT_TIME_ZONE)
+    )
 
 
 @pytest.fixture

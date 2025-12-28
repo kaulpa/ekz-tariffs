@@ -32,7 +32,9 @@ def fuse_slots(slots: list[TariffSlot]) -> list[FusedEvent]:
     def norm(x: float) -> float:
         return round(x, 6)
 
-    cur = FusedEvent(start=slots[0].start, end=slots[0].end, price=norm(slots[0].price_chf_per_kwh))
+    cur = FusedEvent(
+        start=slots[0].start, end=slots[0].end, price=norm(slots[0].price_chf_per_kwh)
+    )
     for s in slots[1:]:
         p = norm(s.price_chf_per_kwh)
         if p == cur.price and s.start == cur.end:
@@ -48,7 +50,13 @@ class EkzTariffsCalendar(CalendarEntity):
     _attr_name: str
     _attr_unique_id: str
 
-    def __init__(self, hass: HomeAssistant, entry_id: str, tariff_name: str, coordinator: EkzTariffsCoordinator) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry_id: str,
+        tariff_name: str,
+        coordinator: EkzTariffsCoordinator,
+    ) -> None:
         self.hass = hass
         self._entry_id = entry_id
         self._tariff_name = tariff_name
@@ -61,7 +69,9 @@ class EkzTariffsCalendar(CalendarEntity):
         self._unsubs: list[callable] = []
 
     async def async_added_to_hass(self) -> None:
-        self.async_on_remove(self._coordinator.async_add_listener(self._handle_coordinator_update))
+        self.async_on_remove(
+            self._coordinator.async_add_listener(self._handle_coordinator_update)
+        )
         self._handle_coordinator_update()
 
     def _clear_scheduled_callbacks(self) -> None:
@@ -91,9 +101,12 @@ class EkzTariffsCalendar(CalendarEntity):
                             "price_chf_per_kwh": price,
                         },
                     )
+
                 return _cb
 
-            unsub = async_track_point_in_time(self.hass, _make_cb(fe.start, fe.end, fe.price), fe.start)
+            unsub = async_track_point_in_time(
+                self.hass, _make_cb(fe.start, fe.end, fe.price), fe.start
+            )
             self._unsubs.append(unsub)
 
     def _handle_coordinator_update(self) -> None:
@@ -109,13 +122,15 @@ class EkzTariffsCalendar(CalendarEntity):
                 f"From: {fe.start.isoformat()}\n"
                 f"To: {fe.end.isoformat()}\n"
             )
-            events.append(CalendarEvent(
-                start=fe.start,
-                end=fe.end,
-                summary=summary,
-                description=desc,
-                uid=f"{self._entry_id}:{fe.start.isoformat()}:{idx}"
-            ))
+            events.append(
+                CalendarEvent(
+                    start=fe.start,
+                    end=fe.end,
+                    summary=summary,
+                    description=desc,
+                    uid=f"{self._entry_id}:{fe.start.isoformat()}:{idx}",
+                )
+            )
 
         self._events = events
         self._schedule_callbacks()
@@ -132,11 +147,15 @@ class EkzTariffsCalendar(CalendarEntity):
                     return ev
         return None
 
-    async def async_get_events(self, hass: HomeAssistant, start_date: dt.datetime, end_date: dt.datetime) -> list[CalendarEvent]:
+    async def async_get_events(
+        self, hass: HomeAssistant, start_date: dt.datetime, end_date: dt.datetime
+    ) -> list[CalendarEvent]:
         # Follow HA calendar range semantics :contentReference[oaicite:4]{index=4}
         out: list[CalendarEvent] = []
         for ev in self._events:
-            if not isinstance(ev.start, dt.datetime) or not isinstance(ev.end, dt.datetime):
+            if not isinstance(ev.start, dt.datetime) or not isinstance(
+                ev.end, dt.datetime
+            ):
                 continue
             if ev.end <= start_date:
                 continue
@@ -154,6 +173,10 @@ async def async_setup_entry(
 ) -> None:
     data = hass.data[DOMAIN][entry.entry_id]
     async_add_entries(
-        [EkzTariffsCalendar(hass, entry.entry_id, data["tariff_name"], data["coordinator"])],
+        [
+            EkzTariffsCalendar(
+                hass, entry.entry_id, data["tariff_name"], data["coordinator"]
+            )
+        ],
         update_before_add=False,
     )

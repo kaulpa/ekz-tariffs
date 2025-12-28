@@ -18,15 +18,21 @@ async def test_calendar_fires_callback_event_on_start(hass, mock_config_entry):
     mock_config_entry.add_to_hass(hass)
 
     # Choose a start in the future relative to patched "now"
-    now = dt_util.as_local(dt.datetime(2025, 12, 28, 12, 0, 0, tzinfo=dt_util.DEFAULT_TIME_ZONE))
+    now = dt_util.as_local(
+        dt.datetime(2025, 12, 28, 12, 0, 0, tzinfo=dt_util.DEFAULT_TIME_ZONE)
+    )
     start = now + dt.timedelta(minutes=30)  # 12:30
     # Two contiguous slots with same price -> fused into one event starting at 12:30
     from tests.conftest import make_slots
+
     slots = make_slots(start, [0.30, 0.30])
 
-    with patch("homeassistant.util.dt.now", return_value=now), patch(
-        "custom_components.ekz_tariffs.api.EkzTariffsApi.fetch_tariffs",
-        return_value=slots,
+    with (
+        patch("homeassistant.util.dt.now", return_value=now),
+        patch(
+            "custom_components.ekz_tariffs.api.EkzTariffsApi.fetch_tariffs",
+            return_value=slots,
+        ),
     ):
         assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
         await hass.async_block_till_done()
