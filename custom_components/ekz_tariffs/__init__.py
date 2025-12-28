@@ -9,8 +9,15 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_change
 
 from .api import EkzTariffsApi
-from .const import (CONF_TARIFF_NAME, DEFAULT_TARIFF_NAME, DOMAIN, FETCH_HOUR,
-                    FETCH_MINUTE, PLATFORMS, SERVICE_REFRESH)
+from .const import (
+    CONF_TARIFF_NAME,
+    DEFAULT_TARIFF_NAME,
+    DOMAIN,
+    FETCH_HOUR,
+    FETCH_MINUTE,
+    PLATFORMS,
+    SERVICE_REFRESH,
+)
 from .coordinator import EkzTariffsCoordinator
 from .storage import make_store, slots_from_json
 

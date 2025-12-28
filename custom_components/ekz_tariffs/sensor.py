@@ -17,9 +17,10 @@ from homeassistant.util import dt as dt_util
 
 from .api import TariffSlot
 from .const import DOMAIN
+from .utils import FusedEvent, fuse_slots
 
 
-def _find_current_slot(slots: list[TariffSlot], now: dt.datetime) -> TariffSlot | None:
+def _find_current_slot(slots: list[FusedEvent], now: dt.datetime) -> FusedEvent | None:
     for s in slots:
         if s.start <= now < s.end:
             return s
@@ -27,7 +28,7 @@ def _find_current_slot(slots: list[TariffSlot], now: dt.datetime) -> TariffSlot 
 
 
 def _find_next_boundary(
-    slots: list[TariffSlot], now: dt.datetime
+    slots: list[FusedEvent], now: dt.datetime
 ) -> dt.datetime | None:
     """
     Next moment when the price can change:
@@ -81,7 +82,8 @@ class EkzCurrentPriceSensor(SensorEntity):
         slots: list[TariffSlot] = self._coordinator.data or []
         now = dt_util.now()
 
-        next_boundary = _find_next_boundary(slots, now)
+        fused_slots = fuse_slots(slots)
+        next_boundary = _find_next_boundary(fused_slots, now)
         if not next_boundary or next_boundary <= now:
             return
 
@@ -103,19 +105,21 @@ class EkzCurrentPriceSensor(SensorEntity):
     def native_value(self) -> float | None:
         slots: list[TariffSlot] = self._coordinator.data or []
         now = dt_util.now()
-        cur = _find_current_slot(slots, now)
+        fused_slots = fuse_slots(slots)
+        cur = _find_current_slot(fused_slots, now)
         if not cur:
             return None
         # avoid float noise; keep sensor stable
-        return round(cur.price_chf_per_kwh, 6)
+        return round(cur.price, 6)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         slots: list[TariffSlot] = self._coordinator.data or []
         now = dt_util.now()
 
-        cur = _find_current_slot(slots, now)
-        next_boundary = _find_next_boundary(slots, now)
+        fused_slots = fuse_slots(slots)
+        cur = _find_current_slot(fused_slots, now)
+        next_boundary = _find_next_boundary(fused_slots, now)
 
         attrs: dict[str, Any] = {
             "tariff_name": self._tariff_name,
@@ -158,13 +162,15 @@ class EkzNextChangeSensor(SensorEntity):
     @property
     def native_value(self) -> dt.datetime | None:
         slots: list[TariffSlot] = self._coordinator.data or []
-        return _find_next_boundary(slots, dt_util.now())
+        fused_slots = fuse_slots(slots)
+        return _find_next_boundary(fused_slots, dt_util.now())
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         slots: list[TariffSlot] = self._coordinator.data or []
         now = dt_util.now()
-        cur = _find_current_slot(slots, now)
+        fused_slots = fuse_slots(slots)
+        cur = _find_current_slot(fused_slots, now)
         return {
             "tariff_name": self._tariff_name,
             "slot_start": cur.start.isoformat() if cur else None,

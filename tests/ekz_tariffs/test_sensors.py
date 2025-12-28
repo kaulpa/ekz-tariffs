@@ -20,7 +20,7 @@ async def test_current_price_and_next_change_sensors(
     from tests.conftest import make_slots
 
     start = fixed_now.replace(minute=0, second=0)
-    prices = [0.20, 0.20, 0.25, 0.25]  # 1 hour of data
+    prices = [0.20, 0.21, 0.25, 0.26]  # 1 hour of data
     slots = make_slots(start, prices)
 
     # Patch API fetch to return our slots on first refresh.
@@ -51,6 +51,7 @@ async def test_current_price_and_next_change_sensors(
     cur = hass.states.get(current_entity_id)
     assert cur is not None
     assert float(cur.state) == 0.20
+    print(cur)
 
     nxt = hass.states.get(nextchange_entity_id)
     assert nxt is not None
