@@ -4,13 +4,12 @@ import datetime as dt
 from unittest.mock import patch
 
 import pytest
-from homeassistant.helpers import entity_registry as er
+from custom_components.ekz_tariffs.const import EVENT_TARIFF_START, EVENT_TYPE
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import (
-    async_capture_events, async_fire_time_changed)
-
-from custom_components.ekz_tariffs.const import (DOMAIN, EVENT_TARIFF_START,
-                                                 EVENT_TYPE)
+    async_capture_events,
+    async_fire_time_changed,
+)
 
 
 @pytest.mark.asyncio

@@ -1,14 +1,9 @@
 from __future__ import annotations
 
-import datetime as dt
 from unittest.mock import patch
 
 import pytest
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import \
-    async_fire_time_changed
-
-from custom_components.ekz_tariffs.const import DOMAIN
 
 
 @pytest.mark.asyncio

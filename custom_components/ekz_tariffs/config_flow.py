@@ -18,7 +18,7 @@ class EkzTariffsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             )
             return self.async_show_form(step_id="user", data_schema=schema)
-        
+
         await self.async_set_unique_id(f"{DOMAIN}_{user_input[CONF_TARIFF_NAME]}")
         self._abort_if_unique_id_configured()
 

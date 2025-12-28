@@ -3,13 +3,11 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
+from custom_components.ekz_tariffs.storage import slots_to_json
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
-from homeassistant.helpers.update_coordinator import (DataUpdateCoordinator,
-                                                      UpdateFailed)
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
-
-from custom_components.ekz_tariffs.storage import slots_to_json
 
 from .api import EkzTariffsApi, TariffSlot
 

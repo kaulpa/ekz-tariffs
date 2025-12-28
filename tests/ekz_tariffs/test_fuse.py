@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import datetime as dt
 
-from homeassistant.util import dt as dt_util
-
 from custom_components.ekz_tariffs.api import TariffSlot
 from custom_components.ekz_tariffs.calendar import fuse_slots
+from homeassistant.util import dt as dt_util
 
 
 def test_fuse_adjacent_equal_prices():

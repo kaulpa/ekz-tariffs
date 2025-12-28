@@ -3,14 +3,13 @@ from __future__ import annotations
 import datetime as dt
 from dataclasses import dataclass
 
+from custom_components.ekz_tariffs.api import TariffSlot
 from homeassistant.components.calendar import CalendarEntity, CalendarEvent
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_point_in_time
 from homeassistant.util import dt as dt_util
-
-from custom_components.ekz_tariffs.api import TariffSlot
 
 from .const import DOMAIN, EVENT_TARIFF_START, EVENT_TYPE
 from .coordinator import EkzTariffsCoordinator
@@ -27,10 +26,10 @@ def fuse_slots(slots: list[TariffSlot]) -> list[FusedEvent]:
     fused: list[FusedEvent] = []
     if not slots:
         return fused
-    
+
     def norm(x: float) -> float:
         return round(x, 6)
-    
+
     cur = FusedEvent(start=slots[0].start, end=slots[0].end, price=norm(slots[0].price_chf_per_kwh))
     for s in slots[1:]:
         p = norm(s.price_chf_per_kwh)
@@ -53,7 +52,7 @@ class EkzTariffsCalendar(CalendarEntity):
         self._tariff_name = tariff_name
         self._coordinator = coordinator
         self._attr_unique_id = f"{entry_id}_calendar"
-        
+
         self._events: list[CalendarEvent] = []
         self._fused: list[FusedEvent] = []
         self._unsubs: list[callable] = []
@@ -92,10 +91,10 @@ class EkzTariffsCalendar(CalendarEntity):
                         },
                     )
                 return _cb
-            
+
             unsub = async_track_point_in_time(self.hass, _make_cb(fe.start, fe.end, fe.price), fe.start)
             self._unsubs.append(unsub)
-    
+
     def _handle_coordinator_update(self) -> None:
         slots: list[TariffSlot] = self._coordinator.data or []
         self._fused = fuse_slots(slots)
@@ -131,7 +130,7 @@ class EkzTariffsCalendar(CalendarEntity):
                 if ev.start > now:
                     return ev
         return None
-    
+
     async def async_get_events(self, hass: HomeAssistant, start_date: dt.datetime, end_date: dt.datetime) -> list[CalendarEvent]:
         # Follow HA calendar range semantics :contentReference[oaicite:4]{index=4}
         out: list[CalendarEvent] = []
@@ -145,8 +144,8 @@ class EkzTariffsCalendar(CalendarEntity):
             out.append(ev)
         out.sort(key=lambda e: e.start)
         return out
-    
-    
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,

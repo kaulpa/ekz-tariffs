@@ -3,8 +3,11 @@ from __future__ import annotations
 import datetime as dt
 from typing import Any
 
-from homeassistant.components.sensor import (SensorDeviceClass, SensorEntity,
-                                             SensorStateClass)
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -60,7 +63,7 @@ class EkzCurrentPriceSensor(SensorEntity):
         if self._unsub_boundary:
             try:
                 self._unsub_boundary()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
             self._unsub_boundary = None
 
@@ -72,7 +75,7 @@ class EkzCurrentPriceSensor(SensorEntity):
         next_boundary = _find_next_boundary(slots, now)
         if not next_boundary or next_boundary <= now:
             return
-        
+
         async def _on_boundary(_now: dt.datetime) -> None:
             # Recompute native_value/attributes and then schedule the *next* boundary.
             self.async_write_ha_state()
@@ -116,7 +119,7 @@ class EkzCurrentPriceSensor(SensorEntity):
             })
 
         return attrs
-    
+
 
 class EkzNextChangeSensor(SensorEntity):
     _attr_has_entity_name = True

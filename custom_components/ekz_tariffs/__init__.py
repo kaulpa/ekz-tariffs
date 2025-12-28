@@ -3,16 +3,22 @@ from __future__ import annotations
 import datetime as dt
 import logging
 
+from custom_components.ekz_tariffs.storage import make_store, slots_from_json
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.event import async_track_time_change
 
-from custom_components.ekz_tariffs.storage import make_store, slots_from_json
-
 from .api import EkzTariffsApi
-from .const import (CONF_TARIFF_NAME, DEFAULT_TARIFF_NAME, DOMAIN, FETCH_HOUR,
-                    FETCH_MINUTE, PLATFORMS, SERVICE_REFRESH)
+from .const import (
+    CONF_TARIFF_NAME,
+    DEFAULT_TARIFF_NAME,
+    DOMAIN,
+    FETCH_HOUR,
+    FETCH_MINUTE,
+    PLATFORMS,
+    SERVICE_REFRESH,
+)
 from .coordinator import EkzTariffsCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -20,7 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     tariff_name = entry.data.get(CONF_TARIFF_NAME, DEFAULT_TARIFF_NAME)
-    
+
     session = async_get_clientsession(hass)
     api = EkzTariffsApi(session)
 
