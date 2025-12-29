@@ -17,6 +17,8 @@ from homeassistant.util import dt as dt_util
 
 from .api import TariffSlot
 from .const import DOMAIN
+from .sensor_daily_average import EkzAverageTodaySensor, EkzAverageTomorrowSensor
+from .sensor_window_extreme import EkzWindowExtremeSensor
 from .utils import FusedEvent, fuse_slots
 
 
@@ -53,6 +55,7 @@ class EkzCurrentPriceSensor(SensorEntity):
     _attr_has_entity_name = True
     _attr_native_unit_of_measurement = "CHF/kWh"
     _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_icon = "mdi:cash-100"
 
     def __init__(
         self, hass: HomeAssistant, entry_id: str, tariff_name: str, coordinator
@@ -178,20 +181,92 @@ class EkzNextChangeSensor(SensorEntity):
         }
 
 
+def _mk_windows(hass, entry_id, tariff_name, coordinator, day_offset: int, suffix: str):
+    label = "today" if day_offset == 0 else "tomorrow"
+    return [
+        EkzWindowExtremeSensor(
+            hass,
+            entry_id,
+            tariff_name,
+            coordinator,
+            day_offset,
+            window_minutes=240,
+            mode="min",
+            name=f"Lowest 4h window {label}: {tariff_name}",
+            unique_suffix=f"lowest_4h_{suffix}",
+        ),
+        EkzWindowExtremeSensor(
+            hass,
+            entry_id,
+            tariff_name,
+            coordinator,
+            day_offset,
+            window_minutes=120,
+            mode="min",
+            name=f"Lowest 2h window {label}: {tariff_name}",
+            unique_suffix=f"lowest_2h_{suffix}",
+        ),
+        EkzWindowExtremeSensor(
+            hass,
+            entry_id,
+            tariff_name,
+            coordinator,
+            day_offset,
+            window_minutes=240,
+            mode="max",
+            name=f"Highest 4h window {label}: {tariff_name}",
+            unique_suffix=f"highest_4h_{suffix}",
+        ),
+        EkzWindowExtremeSensor(
+            hass,
+            entry_id,
+            tariff_name,
+            coordinator,
+            day_offset,
+            window_minutes=120,
+            mode="max",
+            name=f"Highest 2h window {label}: {tariff_name}",
+            unique_suffix=f"highest_2h_{suffix}",
+        ),
+    ]
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     data = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities(
-        [
-            EkzCurrentPriceSensor(
-                hass, entry.entry_id, data["tariff_name"], data["coordinator"]
-            ),
-            EkzNextChangeSensor(
-                hass, entry.entry_id, data["tariff_name"], data["coordinator"]
-            ),
-        ],
-        update_before_add=False,
+    entities = [
+        EkzCurrentPriceSensor(
+            hass, entry.entry_id, data["tariff_name"], data["coordinator"]
+        ),
+        EkzNextChangeSensor(
+            hass, entry.entry_id, data["tariff_name"], data["coordinator"]
+        ),
+        EkzAverageTodaySensor(
+            hass, entry.entry_id, data["tariff_name"], data["coordinator"]
+        ),
+        EkzAverageTomorrowSensor(
+            hass, entry.entry_id, data["tariff_name"], data["coordinator"]
+        ),
+    ]
+
+    entities += _mk_windows(
+        hass,
+        entry.entry_id,
+        data["tariff_name"],
+        data["coordinator"],
+        day_offset=0,
+        suffix="today",
     )
+    entities += _mk_windows(
+        hass,
+        entry.entry_id,
+        data["tariff_name"],
+        data["coordinator"],
+        day_offset=1,
+        suffix="tomorrow",
+    )
+
+    async_add_entities(entities, update_before_add=False)

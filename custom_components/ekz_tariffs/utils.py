@@ -1,6 +1,8 @@
 import datetime as dt
 from dataclasses import dataclass
 
+from homeassistant.util import dt as dt_util
+
 from .api import TariffSlot
 
 
@@ -31,3 +33,8 @@ def fuse_slots(slots: list[TariffSlot]) -> list[FusedEvent]:
             cur = FusedEvent(start=s.start, end=s.end, price=p)
     fused.append(cur)
     return fused
+
+
+def next_midnight(now: dt.datetime) -> dt.datetime:
+    start_today = dt_util.start_of_local_day(now)
+    return start_today + dt.timedelta(days=1)
