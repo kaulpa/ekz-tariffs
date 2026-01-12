@@ -1,5 +1,9 @@
 # EKZ Dynamic Tariffs
 
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+![GitHub Release](https://img.shields.io/github/v/release/schmidtfx/ekz-tariffs)
+![GitHub License](https://img.shields.io/github/license/schmidtfx/ekz-tariffs)
+
 This is the EKZ tariffs API integration for Home Assistant.
 
 ## Features
