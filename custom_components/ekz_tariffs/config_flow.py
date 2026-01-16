@@ -43,11 +43,14 @@ class EkzTariffsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }
         )
 
+        # Build description text directly
+        desc_text = f"Select your EKZ tariff product.\n\n**Tariff Description:**\n{description}"
+
         return self.async_show_form(
             step_id="user",
             data_schema=schema,
             description_placeholders={
-                "tariff_description": description,
+                "description": desc_text,
             },
         )
 
@@ -66,12 +69,14 @@ class EkzTariffsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 data={CONF_TARIFF_NAME: tariff_name},
             )
 
+        # Build description text directly
+        desc_text = f"You have selected: **{tariff_name}**\n\n{description}\n\nPlease confirm to proceed."
+
         # Show confirmation with full description
         return self.async_show_form(
             step_id="confirm",
             data_schema=vol.Schema({}),  # No input needed, just confirmation
             description_placeholders={
-                "tariff_name": tariff_name,
-                "tariff_description": description,
+                "description": desc_text,
             },
         )
