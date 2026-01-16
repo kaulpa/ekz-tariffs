@@ -3,7 +3,6 @@ from __future__ import annotations
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
-from homeassistant.helpers.selector import SelectSelector, SelectSelectorConfig
 
 from .const import CONF_TARIFF_NAME, DEFAULT_TARIFF_NAME, DOMAIN
 
@@ -26,36 +25,41 @@ class EkzTariffsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(self, user_input: dict | None = None) -> FlowResult:
         if user_input is None:
-            # Create selector options with descriptions
-            options = [
-                {"value": tariff, "label": tariff}
-                for tariff in TARIFF_CHOICES
-            ]
-            
             schema = vol.Schema(
                 {
-                    vol.Required(CONF_TARIFF_NAME, default=DEFAULT_TARIFF_NAME): SelectSelector(
-                        SelectSelectorConfig(
-                            options=options,
-                        )
+                    vol.Required(CONF_TARIFF_NAME, default=DEFAULT_TARIFF_NAME): vol.In(
+                        TARIFF_CHOICES
                     ),
                 }
             )
+            return self.async_show_form(step_id="user", data_schema=schema)
+
+        # Store the tariff selection in context and move to confirm step
+        self.context[CONF_TARIFF_NAME] = user_input[CONF_TARIFF_NAME]
+        return await self.async_step_confirm()
+
+    async def async_step_confirm(self, user_input: dict | None = None) -> FlowResult:
+        if user_input is None:
+            # Get the selected tariff from the flow context
+            tariff_name = self.context.get(CONF_TARIFF_NAME, DEFAULT_TARIFF_NAME)
+            description = TARIFF_DESCRIPTIONS.get(tariff_name, "")
             
+            # Show confirmation step with tariff description
             return self.async_show_form(
-                step_id="user",
-                data_schema=schema,
+                step_id="confirm",
                 description_placeholders={
-                    "tariff_description": TARIFF_DESCRIPTIONS.get(
-                        DEFAULT_TARIFF_NAME, ""
-                    )
+                    "tariff_name": tariff_name,
+                    "tariff_description": description,
                 },
             )
 
-        await self.async_set_unique_id(f"{DOMAIN}_{user_input[CONF_TARIFF_NAME]}")
+        # Get tariff from context
+        tariff_name = self.context.get(CONF_TARIFF_NAME, DEFAULT_TARIFF_NAME)
+
+        await self.async_set_unique_id(f"{DOMAIN}_{tariff_name}")
         self._abort_if_unique_id_configured()
 
         return self.async_create_entry(
-            title=f"EKZ {user_input[CONF_TARIFF_NAME]}",
-            data=user_input,
+            title=f"EKZ {tariff_name}",
+            data={CONF_TARIFF_NAME: tariff_name},
         )

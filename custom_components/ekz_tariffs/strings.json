@@ -3,7 +3,11 @@
     "step": {
       "user": {
         "title": "EKZ Dynamic Tariffs",
-        "description": "Select your EKZ tariff product.\n\n**Selected tariff:** {tariff_description}"
+        "description": "Select your EKZ tariff product."
+      },
+      "confirm": {
+        "title": "Confirm Tariff Selection",
+        "description": "You have selected tariff **{tariff_name}**.\n\n**Tariff Description:**\n\n{tariff_description}"
       }
     }
   }
