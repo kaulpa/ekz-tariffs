@@ -15,6 +15,41 @@ This is the EKZ tariffs API integration for Home Assistant.
 - Provides a timestamp for the next change of the energy price
 - Provides sensors to indicate the most expensive and cheapest hours for today and tomorrow
 
+## Integrated Tariffs
+
+This integration uses **integrated tariffs** from the EKZ API. Integrated tariffs are comprehensive electricity products that combine multiple components:
+
+### Tariff Structure
+
+Each integrated tariff consists of three main components:
+
+1. **Electricity tariff** - The dynamic electricity rate (e.g., EKZ Energie Dynamisch for 400D)
+2. **Grid tariff** - The network component (e.g., EKZ Netz 400D + SDL)
+3. **National and regional fees** - Including:
+   - SDL (Stromreserve-Dezentralanlage)
+   - Stromreserve (Power reserve fee)
+   - Solidarisierte Kosten (Solidarity costs)
+   - Bundesabgaben (Federal levies)
+
+### Example: integrated_400D
+
+`integrated_400D` = **EKZ Energie Dynamisch** + **EKZ Netz 400D** + **SDL, Stromreserve, Solidarisierte Kosten, Bundesabgaben**
+
+This represents the complete price you pay for electricity, combining the dynamic rate component with all network and national fees in one unified tariff.
+
+### Available Tariffs
+
+The integration supports the following integrated tariff products:
+
+- **400D** - Dynamic electricity (available from 01.01.2026)
+- **400F** - Renewable electricity
+- **400ST** - Renewable electricity
+- **400WP** - Renewable electricity
+- **400L** - Business renewable electricity
+- **400LS** - Business renewable electricity  
+- **16L** - Business renewable electricity
+- **16LS** - Business renewable electricity
+
 ## Installation
 
 There are two ways this integration can be installed into Home Assistant.

@@ -1,0 +1,10 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "EKZ Dynamic Tariffs",
+        "description": "Select your EKZ tariff product.\n\n**Selected tariff:** {tariff_description}"
+      }
+    }
+  }
+}
