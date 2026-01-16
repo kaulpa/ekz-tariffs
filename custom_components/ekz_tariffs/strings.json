@@ -3,12 +3,18 @@
     "step": {
       "user": {
         "title": "EKZ Dynamic Tariffs",
-        "description": "Select your EKZ tariff product."
+        "description": "Select your EKZ tariff product.\n\n{tariff_description}",
+        "data": {
+          "tariff_name": "Tariff"
+        }
       },
       "confirm": {
-        "title": "Confirm Tariff Selection",
-        "description": "You have selected tariff **{tariff_name}**.\n\n**Tariff Description:**\n\n{tariff_description}"
+        "title": "Confirm Tariff",
+        "description": "You have selected: **{tariff_name}**\n\n{tariff_description}\n\nPlease confirm to proceed."
       }
+    },
+    "abort": {
+      "already_configured": "This tariff is already configured."
     }
   }
 }

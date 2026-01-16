@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
@@ -23,43 +25,53 @@ TARIFF_DESCRIPTIONS = {
 class EkzTariffsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
-    async def async_step_user(self, user_input: dict | None = None) -> FlowResult:
-        if user_input is None:
-            schema = vol.Schema(
-                {
-                    vol.Required(CONF_TARIFF_NAME, default=DEFAULT_TARIFF_NAME): vol.In(
-                        TARIFF_CHOICES
-                    ),
-                }
-            )
-            return self.async_show_form(step_id="user", data_schema=schema)
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        # If submitted, go to confirmation step to show full description
+        if user_input is not None:
+            self.context[CONF_TARIFF_NAME] = user_input[CONF_TARIFF_NAME]
+            return await self.async_step_confirm()
 
-        # Store the tariff selection in context and move to confirm step
-        self.context[CONF_TARIFF_NAME] = user_input[CONF_TARIFF_NAME]
-        return await self.async_step_confirm()
+        # Initial display
+        selected_tariff = self.context.get(CONF_TARIFF_NAME, DEFAULT_TARIFF_NAME)
+        description = TARIFF_DESCRIPTIONS.get(selected_tariff, "")
 
-    async def async_step_confirm(self, user_input: dict | None = None) -> FlowResult:
-        if user_input is None:
-            # Get the selected tariff from the flow context
-            tariff_name = self.context.get(CONF_TARIFF_NAME, DEFAULT_TARIFF_NAME)
-            description = TARIFF_DESCRIPTIONS.get(tariff_name, "")
-            
-            # Show confirmation step with tariff description
-            return self.async_show_form(
-                step_id="confirm",
-                description_placeholders={
-                    "tariff_name": tariff_name,
-                    "tariff_description": description,
-                },
-            )
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_TARIFF_NAME, default=selected_tariff): vol.In(
+                    TARIFF_CHOICES
+                ),
+            }
+        )
 
-        # Get tariff from context
+        return self.async_show_form(
+            step_id="user",
+            data_schema=schema,
+            description_placeholders={
+                "tariff_description": description,
+            },
+        )
+
+    async def async_step_confirm(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+        """Confirmation step showing full tariff details."""
         tariff_name = self.context.get(CONF_TARIFF_NAME, DEFAULT_TARIFF_NAME)
+        description = TARIFF_DESCRIPTIONS.get(tariff_name, "")
 
-        await self.async_set_unique_id(f"{DOMAIN}_{tariff_name}")
-        self._abort_if_unique_id_configured()
+        if user_input is not None:
+            # User confirmed, create the entry
+            await self.async_set_unique_id(f"{DOMAIN}_{tariff_name}")
+            self._abort_if_unique_id_configured()
 
-        return self.async_create_entry(
-            title=f"EKZ {tariff_name}",
-            data={CONF_TARIFF_NAME: tariff_name},
+            return self.async_create_entry(
+                title=f"EKZ {tariff_name}",
+                data={CONF_TARIFF_NAME: tariff_name},
+            )
+
+        # Show confirmation with full description
+        return self.async_show_form(
+            step_id="confirm",
+            data_schema=vol.Schema({}),  # No input needed, just confirmation
+            description_placeholders={
+                "tariff_name": tariff_name,
+                "tariff_description": description,
+            },
         )
