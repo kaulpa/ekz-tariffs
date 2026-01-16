@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "EKZ Dynamic Tariffs",
-        "description": "{description}",
+        "description": "Select your EKZ tariff product.\n\n**Tariff Description:**\n{description}",
         "data": {
           "tariff_name": "Tariff"
         }
