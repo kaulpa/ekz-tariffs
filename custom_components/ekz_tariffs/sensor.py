@@ -119,30 +119,33 @@ class EkzCurrentPriceSensor(SensorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """
-        Neben Metadaten stellt dieser Sensor *zugleich* die zukünftigen 15‑Min‑Slots bereit:
-        - today:    Liste [{start, end, value}] für den lokalen Kalendertag "heute"
-        - tomorrow: dito für "morgen" (kann bis Veröffentlichung ~18:00 leer sein)
+        Neben Metadaten stellt dieser Sensor *zugleich* die zukünftigen Slots bereit:
+        - today/tomorrow: Listen [{start, end, value}] (CHF/kWh)
+          aus den fusionierten Slots (FusedEvent), die ein .price-Attribut besitzen.
         """
+        # Original-Slots vom Coordinator (list[TariffSlot])
         slots: list[TariffSlot] = self._coordinator.data or []
         now = dt_util.now()
 
+        # Für aktuellen Wert & Grenzzeitpunkte weiter wie gehabt:
         fused_slots = fuse_slots(slots)
         cur = _find_current_slot(fused_slots, now)
         next_boundary = _find_next_boundary(fused_slots, now)
 
-        # --- NEU: Slot-Listen für heute/morgen generieren (ohne fuse, exakt 15-min Raster) ---
+        # NEU: today/tomorrow-Listen aus den fusionierten Slots erzeugen
         today_date = dt_util.as_local(now).date()
         tomorrow_date = today_date + dt.timedelta(days=1)
 
-        def _filter_by_local_date(day: dt.date) -> list[dict[str, Any]]:
+        def _events_for_day(day: dt.date) -> list[dict[str, Any]]:
             out: list[dict[str, Any]] = []
-            for s in slots:
-                if dt_util.as_local(s.start).date() == day:
+            for e in fused_slots:
+                # Wir ordnen nach Startdatum (lokal) – reicht im 15-min Raster
+                if dt_util.as_local(e.start).date() == day:
                     out.append(
                         {
-                            "start": s.start.isoformat(),
-                            "end": s.end.isoformat(),
-                            "value": round(s.price, 6),
+                            "start": e.start.isoformat(),
+                            "end": e.end.isoformat(),
+                            "value": round(e.price, 6),
                         }
                     )
             out.sort(key=lambda x: x["start"])
@@ -152,6 +155,9 @@ class EkzCurrentPriceSensor(SensorEntity):
             "tariff_name": self._tariff_name,
             "schedule_date": dt_util.as_local(now).date().isoformat(),
             "next_change": next_boundary.isoformat() if next_boundary else None,
+            "price_unit": "CHF/kWh",
+            "today": _events_for_day(today_date),
+            "tomorrow": _events_for_day(tomorrow_date),
         }
 
         if cur:
@@ -161,11 +167,6 @@ class EkzCurrentPriceSensor(SensorEntity):
                     "slot_end": cur.end.isoformat(),
                 }
             )
-
-        # Forecast-Attribute (heute + morgen) für ApexCharts data_generator:
-        attrs["today"] = _filter_by_local_date(today_date)
-        attrs["tomorrow"] = _filter_by_local_date(tomorrow_date)
-        attrs["price_unit"] = "CHF/kWh"
 
         return attrs
 
