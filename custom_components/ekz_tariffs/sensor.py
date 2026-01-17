@@ -1,3 +1,4 @@
+
 from __future__ import annotations
 
 import contextlib
@@ -40,7 +41,6 @@ def _find_next_boundary(
     cur = _find_current_slot(slots, now)
     if cur:
         return cur.end
-
     for s in slots:
         if s.start > now:
             return s.start
@@ -64,8 +64,10 @@ class EkzCurrentPriceSensor(SensorEntity):
         self._entry_id = entry_id
         self._tariff_name = tariff_name
         self._coordinator = coordinator
+
         self._attr_unique_id = f"{entry_id}_current_price"
         self._attr_name = f"Current price: {tariff_name}"
+
         self._unsub_boundary: Any | None = None
 
     async def async_added_to_hass(self) -> None:
@@ -84,7 +86,6 @@ class EkzCurrentPriceSensor(SensorEntity):
         self._clear_boundary_timer()
         slots: list[TariffSlot] = self._coordinator.data or []
         now = dt_util.now()
-
         fused_slots = fuse_slots(slots)
         next_boundary = _find_next_boundary(fused_slots, now)
         if not next_boundary or next_boundary <= now:
@@ -119,7 +120,6 @@ class EkzCurrentPriceSensor(SensorEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         slots: list[TariffSlot] = self._coordinator.data or []
         now = dt_util.now()
-
         fused_slots = fuse_slots(slots)
         cur = _find_current_slot(fused_slots, now)
         next_boundary = _find_next_boundary(fused_slots, now)
@@ -129,7 +129,6 @@ class EkzCurrentPriceSensor(SensorEntity):
             "schedule_date": dt_util.as_local(now).date().isoformat(),
             "next_change": next_boundary.isoformat() if next_boundary else None,
         }
-
         if cur:
             attrs.update(
                 {
@@ -137,7 +136,6 @@ class EkzCurrentPriceSensor(SensorEntity):
                     "slot_end": cur.end.isoformat(),
                 }
             )
-
         return attrs
 
 
@@ -178,6 +176,67 @@ class EkzNextChangeSensor(SensorEntity):
             "tariff_name": self._tariff_name,
             "slot_start": cur.start.isoformat() if cur else None,
             "slot_end": cur.end.isoformat() if cur else None,
+        }
+
+
+
+def _slot_to_dict(slot: TariffSlot) -> dict[str, Any]:
+    return {
+        "start": slot.start.isoformat(),
+        "end": slot.end.isoformat(),
+        "value": round(slot.price, 6),
+    }
+
+
+def _filter_by_local_date(slots: list[TariffSlot], day: dt.date) -> list[TariffSlot]:
+    """Filter 15-min slots by local calendar day."""
+    out: list[TariffSlot] = []
+    for s in slots or []:
+        s_local_start = dt_util.as_local(s.start)
+        if s_local_start.date() == day:
+            out.append(s)
+    out.sort(key=lambda x: x.start)
+    return out
+
+
+class EkzForecastSensor(SensorEntity):
+    """Exposes today's and tomorrow's 15-min tariff slots as attributes for plotting."""
+
+    _attr_has_entity_name = True
+    _attr_icon = "mdi:timeline-clock"
+
+    def __init__(self, hass: HomeAssistant, entry_id: str, tariff_name: str, coordinator) -> None:
+        self.hass = hass
+        self._entry_id = entry_id
+        self._tariff_name = tariff_name
+        self._coordinator = coordinator
+        self._attr_name = f"Tariff schedule: {tariff_name}"
+        self._attr_unique_id = f"{entry_id}_schedule"
+
+    async def async_added_to_hass(self) -> None:
+        self.async_on_remove(self._coordinator.async_add_listener(self._handle_update))
+        self._handle_update()
+
+    def _handle_update(self) -> None:
+        self.async_write_ha_state()
+
+    @property
+    def native_value(self) -> str | None:
+        # As state we expose the local date of the schedule (today)
+        return dt_util.as_local(dt_util.now()).date().isoformat()
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        slots: list[TariffSlot] = self._coordinator.data or []
+        today = dt_util.as_local(dt_util.now()).date()
+        tomorrow = today + dt.timedelta(days=1)
+        today_slots = _filter_by_local_date(slots, today)
+        tomorrow_slots = _filter_by_local_date(slots, tomorrow)
+        return {
+            "tariff_name": self._tariff_name,
+            "price_unit": "CHF/kWh",
+            "today": [_slot_to_dict(s) for s in today_slots],
+            "tomorrow": [_slot_to_dict(s) for s in tomorrow_slots],  # may be empty until ~18:00
         }
 
 
@@ -244,6 +303,10 @@ async def async_setup_entry(
         EkzNextChangeSensor(
             hass, entry.entry_id, data["tariff_name"], data["coordinator"]
         ),
+        # New: forecast/schedule entity with today/tomorrow slot arrays
+        EkzForecastSensor(
+            hass, entry.entry_id, data["tariff_name"], data["coordinator"]
+        ),
         EkzAverageTodaySensor(
             hass, entry.entry_id, data["tariff_name"], data["coordinator"]
         ),
@@ -251,7 +314,6 @@ async def async_setup_entry(
             hass, entry.entry_id, data["tariff_name"], data["coordinator"]
         ),
     ]
-
     entities += _mk_windows(
         hass,
         entry.entry_id,
@@ -268,5 +330,4 @@ async def async_setup_entry(
         day_offset=1,
         suffix="tomorrow",
     )
-
     async_add_entities(entities, update_before_add=False)
